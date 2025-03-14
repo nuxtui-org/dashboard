@@ -6,63 +6,85 @@ const { isNotificationsSlideoverOpen } = useDashboard()
 
 const items = [[{
   label: 'New mail',
-  icon: 'i-lucide-send',
+  icon: 'i-heroicons-paper-airplane',
   to: '/inbox'
 }, {
-  label: 'New customer',
-  icon: 'i-lucide-user-plus',
-  to: '/customers'
+  label: 'New user',
+  icon: 'i-heroicons-user-plus',
+  to: '/users'
 }]]
 
-const range = shallowRef<Range>({
-  start: sub(new Date(), { days: 14 }),
-  end: new Date()
-})
+const range = ref<Range>({ start: sub(new Date(), { days: 14 }), end: new Date() })
 const period = ref<Period>('daily')
 </script>
 
 <template>
-  <UDashboardPanel id="home">
-    <template #header>
-      <UDashboardNavbar title="Home" :ui="{ right: 'gap-3' }">
-        <template #leading>
-          <UDashboardSidebarCollapse />
-        </template>
-
+  <UDashboardPage>
+    <UDashboardPanel grow>
+      <UDashboardNavbar title="Home">
         <template #right>
-          <UTooltip text="Notifications" :shortcuts="['N']">
+          <UTooltip
+            text="Notifications"
+            :shortcuts="['N']"
+          >
             <UButton
-              color="neutral"
+              color="gray"
               variant="ghost"
               square
               @click="isNotificationsSlideoverOpen = true"
             >
-              <UChip color="error" inset>
-                <UIcon name="i-lucide-bell" class="size-5 shrink-0" />
+              <UChip
+                color="red"
+                inset
+              >
+                <UIcon
+                  name="i-heroicons-bell"
+                  class="w-5 h-5"
+                />
               </UChip>
             </UButton>
           </UTooltip>
 
-          <UDropdownMenu :items="items">
-            <UButton icon="i-lucide-plus" size="md" class="rounded-full" />
-          </UDropdownMenu>
+          <UDropdown :items="items">
+            <UButton
+              icon="i-heroicons-plus"
+              size="md"
+              class="ml-1.5 rounded-full"
+            />
+          </UDropdown>
         </template>
       </UDashboardNavbar>
 
       <UDashboardToolbar>
         <template #left>
-          <!-- NOTE: The `-ms-1` class is used to align with the `DashboardSidebarCollapse` button here. -->
-          <HomeDateRangePicker v-model="range" class="-ms-1" />
+          <!-- ~/components/home/HomeDateRangePicker.vue -->
+          <HomeDateRangePicker
+            v-model="range"
+            class="-ml-2.5"
+          />
 
-          <HomePeriodSelect v-model="period" :range="range" />
+          <!-- ~/components/home/HomePeriodSelect.vue -->
+          <HomePeriodSelect
+            v-model="period"
+            :range="range"
+          />
         </template>
       </UDashboardToolbar>
-    </template>
 
-    <template #body>
-      <HomeStats :period="period" :range="range" />
-      <HomeChart :period="period" :range="range" />
-      <HomeSales :period="period" :range="range" />
-    </template>
-  </UDashboardPanel>
+      <UDashboardPanelContent>
+        <!-- ~/components/home/HomeChart.vue -->
+        <HomeChart
+          :period="period"
+          :range="range"
+        />
+
+        <div class="grid lg:grid-cols-2 lg:items-start gap-8 mt-8">
+          <!-- ~/components/home/HomeSales.vue -->
+          <HomeSales />
+          <!-- ~/components/home/HomeCountries.vue -->
+          <HomeCountries />
+        </div>
+      </UDashboardPanelContent>
+    </UDashboardPanel>
+  </UDashboardPage>
 </template>

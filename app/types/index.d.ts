@@ -1,13 +1,12 @@
-import type { AvatarProps } from '@nuxt/ui'
+import type { Avatar } from '#ui/types'
 
 export type UserStatus = 'subscribed' | 'unsubscribed' | 'bounced'
-export type SaleStatus = 'paid' | 'failed' | 'refunded'
 
 export interface User {
   id: number
   name: string
   email: string
-  avatar?: AvatarProps
+  avatar?: Avatar
   status: UserStatus
   location: string
 }
@@ -26,22 +25,6 @@ export interface Member {
   username: string
   role: 'member' | 'owner'
   avatar: Avatar
-}
-
-export interface Stat {
-  title: string
-  icon: string
-  value: number | string
-  variation: number
-  formatter?: (value: number) => string
-}
-
-export interface Sale {
-  id: string
-  date: string
-  status: SaleStatus
-  email: string
-  amount: number
 }
 
 export interface Notification {

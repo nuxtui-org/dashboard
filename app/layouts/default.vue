@@ -1,155 +1,141 @@
 <script setup lang="ts">
 const route = useRoute()
-const toast = useToast()
+const appConfig = useAppConfig()
+const { isHelpSlideoverOpen } = useDashboard()
 
-const open = ref(false)
-
-const links = [[{
+const links = [{
+  id: 'home',
   label: 'Home',
-  icon: 'i-lucide-house',
+  icon: 'i-heroicons-home',
   to: '/',
-  onSelect: () => {
-    open.value = false
+  tooltip: {
+    text: 'Home',
+    shortcuts: ['G', 'H']
   }
 }, {
+  id: 'inbox',
   label: 'Inbox',
-  icon: 'i-lucide-inbox',
+  icon: 'i-heroicons-inbox',
   to: '/inbox',
   badge: '4',
-  onSelect: () => {
-    open.value = false
+  tooltip: {
+    text: 'Inbox',
+    shortcuts: ['G', 'I']
   }
 }, {
-  label: 'Customers',
-  icon: 'i-lucide-users',
-  to: '/customers',
-  onSelect: () => {
-    open.value = false
+  id: 'users',
+  label: 'Users',
+  icon: 'i-heroicons-user-group',
+  to: '/users',
+  tooltip: {
+    text: 'Users',
+    shortcuts: ['G', 'U']
   }
 }, {
+  id: 'settings',
   label: 'Settings',
   to: '/settings',
-  icon: 'i-lucide-settings',
-  defaultOpen: true,
+  icon: 'i-heroicons-cog-8-tooth',
   children: [{
     label: 'General',
     to: '/settings',
-    exact: true,
-    onSelect: () => {
-      open.value = false
-    }
+    exact: true
   }, {
     label: 'Members',
-    to: '/settings/members',
-    onSelect: () => {
-      open.value = false
-    }
+    to: '/settings/members'
   }, {
     label: 'Notifications',
-    to: '/settings/notifications',
-    onSelect: () => {
-      open.value = false
-    }
-  }, {
-    label: 'Security',
-    to: '/settings/security',
-    onSelect: () => {
-      open.value = false
-    }
-  }]
-}], [{
-  label: 'Feedback',
-  icon: 'i-lucide-message-circle',
-  to: 'https://github.com/nuxt-ui-pro/dashboard',
-  target: '_blank'
+    to: '/settings/notifications'
+  }],
+  tooltip: {
+    text: 'Settings',
+    shortcuts: ['G', 'S']
+  }
+}]
+
+const footerLinks = [{
+  label: 'Invite people',
+  icon: 'i-heroicons-plus',
+  to: '/settings/members'
 }, {
   label: 'Help & Support',
-  icon: 'i-lucide-info',
-  to: 'https://github.com/nuxt/ui-pro',
-  target: '_blank'
-}]]
+  icon: 'i-heroicons-question-mark-circle',
+  click: () => isHelpSlideoverOpen.value = true
+}]
 
-const groups = computed(() => [{
-  id: 'links',
+const groups = [{
+  key: 'links',
   label: 'Go to',
-  items: links.flat()
+  commands: links.map(link => ({ ...link, shortcuts: link.tooltip?.shortcuts }))
 }, {
-  id: 'code',
+  key: 'code',
   label: 'Code',
-  items: [{
+  commands: [{
     id: 'source',
     label: 'View page source',
     icon: 'i-simple-icons-github',
-    to: `https://github.com/nuxt-ui-pro/dashboard/blob/v3/app/pages${route.path === '/' ? '/index' : route.path}.vue`,
-    target: '_blank'
+    click: () => {
+      window.open(`https://github.com/nuxt-ui-pro/dashboard/blob/v1/pages${route.path === '/' ? '/index' : route.path}.vue`, '_blank')
+    }
   }]
-}])
+}]
 
-onMounted(async () => {
-  const cookie = useCookie('cookie-consent')
-  if (cookie.value === 'accepted') {
-    return
-  }
-
-  toast.add({
-    title: 'We use first-party cookies to enhance your experience on our website.',
-    duration: 0,
-    close: false,
-    actions: [{
-      label: 'Accept',
-      color: 'neutral',
-      variant: 'outline',
-      onClick: () => {
-        cookie.value = 'accepted'
-      }
-    }, {
-      label: 'Opt out',
-      color: 'neutral',
-      variant: 'ghost'
-    }]
-  })
-})
+const defaultColors = ref(['green', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet'].map(color => ({ label: color, chip: color, click: () => appConfig.ui.primary = color })))
+const colors = computed(() => defaultColors.value.map(color => ({ ...color, active: appConfig.ui.primary === color.label })))
 </script>
 
 <template>
-  <UDashboardGroup>
-    <UDashboardSearch :groups="groups" />
-
-    <UDashboardSidebar
-      v-model:open="open"
+  <UDashboardLayout>
+    <UDashboardPanel
+      :width="250"
+      :resizable="{ min: 200, max: 300 }"
       collapsible
-      resizable
-      class="bg-(--ui-bg-elevated)/25"
-      :ui="{ footer: 'lg:border-t lg:border-(--ui-border)' }"
     >
-      <template #header="{ collapsed }">
-        <TeamsMenu :collapsed="collapsed" />
-      </template>
+      <UDashboardNavbar
+        class="!border-transparent"
+        :ui="{ left: 'flex-1' }"
+      >
+        <template #left>
+          <TeamsDropdown />
+        </template>
+      </UDashboardNavbar>
 
-      <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-(--ui-border)" />
+      <UDashboardSidebar>
+        <template #header>
+          <UDashboardSearchButton />
+        </template>
 
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[0]"
-          orientation="vertical"
+        <UDashboardSidebarLinks :links="links" />
+
+        <UDivider />
+
+        <UDashboardSidebarLinks
+          :links="[{ label: 'Colors', draggable: true, children: colors }]"
+          @update:links="colors => defaultColors = colors"
         />
 
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[1]"
-          orientation="vertical"
-          class="mt-auto"
-        />
-      </template>
+        <div class="flex-1" />
 
-      <template #footer="{ collapsed }">
-        <UserMenu :collapsed="collapsed" />
-      </template>
-    </UDashboardSidebar>
+        <UDashboardSidebarLinks :links="footerLinks" />
+
+        <UDivider class="sticky bottom-0" />
+
+        <template #footer>
+          <!-- ~/components/UserDropdown.vue -->
+          <UserDropdown />
+        </template>
+      </UDashboardSidebar>
+    </UDashboardPanel>
 
     <slot />
 
+    <!-- ~/components/HelpSlideover.vue -->
+    <HelpSlideover />
+    <!-- ~/components/NotificationsSlideover.vue -->
     <NotificationsSlideover />
-  </UDashboardGroup>
+
+    <ClientOnly>
+      <LazyUDashboardSearch :groups="groups" />
+    </ClientOnly>
+  </UDashboardLayout>
 </template>

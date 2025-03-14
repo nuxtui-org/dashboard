@@ -4,6 +4,7 @@ import type { Member } from '~/types'
 const { data: members } = await useFetch<Member[]>('/api/members', { default: () => [] })
 
 const q = ref('')
+const isInviteModalOpen = ref(false)
 
 const filteredMembers = computed(() => {
   return members.value.filter((member) => {
@@ -13,33 +14,47 @@ const filteredMembers = computed(() => {
 </script>
 
 <template>
-  <div>
-    <UPageCard
-      title="Members"
+  <UDashboardPanelContent class="pb-24">
+    <UDashboardSection
+      title="Manage access"
       description="Invite new members by email address."
-      variant="naked"
       orientation="horizontal"
-      class="mb-4"
+      :ui="{ container: 'lg:sticky top-2' }"
     >
-      <UButton
-        label="Invite people"
-        color="neutral"
-        class="w-fit lg:ms-auto"
-      />
-    </UPageCard>
-
-    <UPageCard variant="subtle" :ui="{ container: 'p-0 sm:p-0 gap-y-0', header: 'p-4 mb-0 border-b border-(--ui-border)' }">
-      <template #header>
-        <UInput
-          v-model="q"
-          icon="i-lucide-search"
-          placeholder="Search members"
-          autofocus
-          class="w-full"
+      <template #links>
+        <UButton
+          label="Invite people"
+          color="black"
+          @click="isInviteModalOpen = true"
         />
       </template>
 
-      <SettingsMembersList :members="filteredMembers" />
-    </UPageCard>
-  </div>
+      <UCard
+        :ui="{ header: { padding: 'p-4 sm:px-6' }, body: { padding: '' } }"
+        class="min-w-0"
+      >
+        <template #header>
+          <UInput
+            v-model="q"
+            icon="i-heroicons-magnifying-glass"
+            placeholder="Search members"
+            autofocus
+          />
+        </template>
+
+        <!-- ~/components/settings/MembersList.vue -->
+        <SettingsMembersList :members="filteredMembers" />
+      </UCard>
+    </UDashboardSection>
+
+    <UDashboardModal
+      v-model="isInviteModalOpen"
+      title="Invite people"
+      description="Invite new members by email address"
+      :ui="{ width: 'sm:max-w-md' }"
+    >
+      <!-- ~/components/settings/MembersForm.vue -->
+      <SettingsMembersForm @close="isInviteModalOpen = false" />
+    </UDashboardModal>
+  </UDashboardPanelContent>
 </template>

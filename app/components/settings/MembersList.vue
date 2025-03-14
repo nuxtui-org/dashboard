@@ -1,22 +1,35 @@
 <script setup lang="ts">
 import type { Member } from '~/types'
 
-defineProps<{
-  members: Member[]
-}>()
+defineProps({
+  members: {
+    type: Array as PropType<Member[]>,
+    default: () => []
+  }
+})
 
-const items = [{
-  label: 'Edit member',
-  onSelect: () => console.log('Edit member')
-}, {
-  label: 'Remove member',
-  color: 'error' as const,
-  onSelect: () => console.log('Remove member')
-}]
+function getItems(member: Member) {
+  return [[{
+    label: 'Edit member',
+    click: () => console.log('Edit', member)
+  }, {
+    label: 'Remove member',
+    labelClass: 'text-red-500 dark:text-red-400',
+    click: () => console.log('Remove', member)
+  }]]
+}
+
+function onRoleChange(member: Member, role: string) {
+  // Do something with data
+  console.log(member.username, role)
+}
 </script>
 
 <template>
-  <ul role="list" class="divide-y divide-(--ui-border)">
+  <ul
+    role="list"
+    class="divide-y divide-gray-200 dark:divide-gray-800"
+  >
     <li
       v-for="(member, index) in members"
       :key="index"
@@ -29,30 +42,34 @@ const items = [{
         />
 
         <div class="text-sm min-w-0">
-          <p class="text-(--ui-text-highlighted) font-medium truncate">
+          <p class="text-gray-900 dark:text-white font-medium truncate">
             {{ member.name }}
           </p>
-          <p class="text-(--ui-text-muted) truncate">
+          <p class="text-gray-500 dark:text-gray-400 truncate">
             {{ member.username }}
           </p>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <USelect
+        <USelectMenu
           :model-value="member.role"
-          :items="['member', 'owner']"
-          color="neutral"
-          :ui="{ value: 'capitalize', item: 'capitalize' }"
+          :options="['member', 'owner']"
+          color="white"
+          :ui-menu="{ select: 'capitalize', option: { base: 'capitalize' } }"
+          @update:model-value="onRoleChange(member, $event)"
         />
 
-        <UDropdownMenu :items="items" :content="{ align: 'end' }">
+        <UDropdown
+          :items="getItems(member)"
+          position="bottom-end"
+        >
           <UButton
-            icon="i-lucide-ellipsis-vertical"
-            color="neutral"
+            icon="i-heroicons-ellipsis-vertical"
+            color="gray"
             variant="ghost"
           />
-        </UDropdownMenu>
+        </UDropdown>
       </div>
     </li>
   </ul>
